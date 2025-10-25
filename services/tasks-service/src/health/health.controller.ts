@@ -7,10 +7,10 @@ export class HealthController {
     return { status: 'ok' };
   }
 
-  // @Get('/tr')
-  // templateRoute() {
-  //   return { message: 'template route' };
-  // }
+  @Get('/tr')
+  templateRoute() {
+    return { message: 'template route' };
+  }
   @Get('/ready')
   getReady() {
     return { ready: true };
