@@ -1,0 +1,18 @@
+image:
+  repository: <override via CI>
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+containerPort: 3000
+env:
+  - name: PORT
+    value: "3000"
+  - name: MONGO_URI
+    value: "mongodb://admin:adminpass@users-mongo:27017/usersdb?authSource=admin"
+
+service:
+  type: ClusterIP
+  port: 3000
+
+resources: {}

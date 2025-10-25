@@ -1,0 +1,10 @@
+image:
+  repository: YOUR_ACR_NAME.azurecr.io/tasks-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3002
+
+resources: {}  # set requests/limits later

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auth Page</title>
+
+    <!-- ✅ Materialize CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Google Icons -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background: #f5f5f5;
+      }
+      .auth-container {
+        max-width: 480px;
+        width: 100%;
+        padding: 0;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+      .auth-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 1.25rem 1.5rem 0.75rem;
+      }
+      .tabs {
+        padding: 0 1rem;
+      }
+      .tabs .tab a {
+        color: #1976d2;
+      }
+      .tabs .tab a.active {
+        color: #0d47a1;
+      }
+      .tabs .indicator {
+        background-color: #1976d2;
+      }
+      .auth-content {
+        padding: 1.5rem;
+      }
+      .btn {
+        width: 100%;
+      }
+      .helper-text.right {
+        float: right;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="auth-container z-depth-2">
+      <div class="auth-header">
+        <i class="material-icons">lock</i>
+        <h5 style="margin: 0">Welcome</h5>
+      </div>
+
+      <!-- Tabs -->
+      <ul class="tabs">
+        <li class="tab col s6"><a class="active" href="#login">Login</a></li>
+        <li class="tab col s6"><a href="#register">Register</a></li>
+      </ul>
+
+      <!-- Login -->
+      <div id="login" class="auth-content">
+        <form action="/login" method="POST" novalidate>
+          <div class="input-field">
+            <input id="login-username" name="username" type="text" required />
+            <label for="login-username">Username</label>
+          </div>
+          <div class="input-field">
+            <input
+              id="login-password"
+              name="password"
+              type="password"
+              required
+            />
+            <label for="login-password">Password</label>
+            <span class="helper-text right"
+              ><a href="#">Forgot password?</a></span
+            >
+          </div>
+          <button type="submit" class="btn waves-effect waves-light blue">
+            <i class="material-icons left">login</i>Login
+          </button>
+        </form>
+      </div>
+
+      <!-- Register -->
+      <div id="register" class="auth-content">
+        <form action="/register" method="POST" novalidate>
+          <div class="input-field">
+            <input id="reg-username" name="username" type="text" required />
+            <label for="reg-username">Username</label>
+          </div>
+          <div class="input-field">
+            <input
+              id="reg-email"
+              name="email"
+              type="email"
+              class="validate"
+              required
+            />
+            <label for="reg-email">Email</label>
+            <span class="helper-text" data-error="Enter a valid email"></span>
+          </div>
+          <div class="input-field">
+            <input
+              id="reg-password"
+              name="password"
+              type="password"
+              minlength="6"
+              required
+            />
+            <label for="reg-password">Password (min 6 chars)</label>
+          </div>
+          <div class="input-field">
+            <input
+              id="reg-confirm"
+              name="confirmPassword"
+              type="password"
+              minlength="6"
+              required
+            />
+            <label for="reg-confirm">Confirm Password</label>
+            <span id="pwd-match" class="helper-text"></span>
+          </div>
+          <p>
+            <label>
+              <input type="checkbox" name="terms" required />
+              <span>I agree to the Terms & Privacy</span>
+            </label>
+          </p>
+          <br />
+          <button type="submit" class="btn waves-effect waves-light green">
+            <i class="material-icons left">person_add</i>Create Account
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ✅ Materialize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <script>
+      // Init tabs
+      document.addEventListener("DOMContentLoaded", function () {
+        const elems = document.querySelectorAll(".tabs");
+        M.Tabs.init(elems);
+      });
+
+      // Simple password match helper (client-side UX only)
+      const pwd = document.getElementById("reg-password");
+      const confirm = document.getElementById("reg-confirm");
+      const helper = document.getElementById("pwd-match");
+
+      function checkPwdMatch() {
+        if (!pwd.value || !confirm.value) {
+          helper.textContent = "";
+          return;
+        }
+        if (pwd.value === confirm.value) {
+          helper.textContent = "Passwords match ✅";
+          helper.style.color = "green";
+        } else {
+          helper.textContent = "Passwords do not match";
+          helper.style.color = "red";
+        }
+      }
+      if (pwd && confirm) {
+        pwd.addEventListener("input", checkPwdMatch);
+        confirm.addEventListener("input", checkPwdMatch);
+      }
+    </script>
+    <script type="module">
+      import { registerUser } from "./Register.js";
+
+      // You can optionally attach it to window to call it from HTML onclick
+      window.registerUser = registerUser;
+    </script>
+  </body>
+</html>

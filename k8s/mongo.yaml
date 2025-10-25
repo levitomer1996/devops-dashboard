@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-mongo
+  namespace: devops-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: users-mongo }
+  template:
+    metadata:
+      labels: { app: users-mongo }
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:7
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-users-secret
+                  key: MONGO_INITDB_ROOT_USERNAME
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-users-secret
+                  key: MONGO_INITDB_ROOT_PASSWORD
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: users-mongo-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-mongo
+  namespace: devops-dashboard
+spec:
+  selector: { app: users-mongo }
+  ports:
+    - port: 27017
+      targetPort: 27017
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasks-mongo
+  namespace: devops-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: tasks-mongo }
+  template:
+    metadata:
+      labels: { app: tasks-mongo }
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:7
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-tasks-secret
+                  key: MONGO_INITDB_ROOT_USERNAME
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-tasks-secret
+                  key: MONGO_INITDB_ROOT_PASSWORD
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: tasks-mongo-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tasks-mongo
+  namespace: devops-dashboard
+spec:
+  selector: { app: tasks-mongo }
+  ports:
+    - port: 27017
+      targetPort: 27017

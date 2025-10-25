@@ -1,0 +1,96 @@
+version: "3.9"
+
+services:
+  # MongoDB for users-service
+  users-mongo:
+    image: mongo:7
+    container_name: users-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: adminpass
+      MONGO_INITDB_DATABASE: usersdb
+    ports:
+      - "27017:27017" # expose on host so Compass can connect
+    volumes:
+      - users_data:/data/db
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--quiet",
+          "-u",
+          "admin",
+          "-p",
+          "adminpass",
+          "--eval",
+          "db.adminCommand('ping')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NestJS users-service
+  users-service:
+    build: ./services/users-service # path to the users-service folder
+    container_name: users-service
+    restart: unless-stopped
+    depends_on:
+      users-mongo:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      MONGO_URI: mongodb://admin:adminpass@users-mongo:27017/usersdb?authSource=admin
+    ports:
+      - "4001:3000" # host:container (browser → NestJS)
+    command: npm run start:prod
+
+  # MongoDB for tasks-service
+  tasks-mongo:
+    image: mongo:7
+    container_name: tasks-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: adminpass
+      MONGO_INITDB_DATABASE: tasksdb
+    ports:
+      - "27018:27017" # different port for second DB
+    volumes:
+      - tasks_data:/data/db
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--quiet",
+          "-u",
+          "admin",
+          "-p",
+          "adminpass",
+          "--eval",
+          "db.adminCommand('ping')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  #  NestJS tasks-service
+  tasks-service:
+    build: ./services/tasks-service # path to the tasks-service folder
+    container_name: tasks-service
+    restart: unless-stopped
+    depends_on:
+      tasks-mongo:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      MONGO_URI: mongodb://admin:adminpass@tasks-mongo:27017/tasksdb?authSource=admin
+    ports:
+      - "4002:3000"
+    command: npm run start:prod
+
+volumes:
+  users_data:
+  tasks_data:
