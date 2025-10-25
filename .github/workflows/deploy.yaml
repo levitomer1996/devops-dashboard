@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+# minimal permission so actions can read releases, etc.
+permissions:
+  contents: read
+
 env:
   NAMESPACE: devops-dashboard
 
@@ -55,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 🔑 You must login again in this job
+      # 🔑 Login again in this job
       - name: Azure login
         uses: azure/login@v2
         with:
@@ -67,11 +71,13 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
-      # Needed because you set use-kubelogin: true
+      # Needed because use-kubelogin: true
       - name: Install kubelogin
         uses: azure/use-kubelogin@v1
         with:
-          kubelogin-version: latest
+          kubelogin-version: v0.0.36 # pin a version to avoid 'latest' lookup
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       # Set AKS context (no 'creds' here)
       - name: Set AKS context
