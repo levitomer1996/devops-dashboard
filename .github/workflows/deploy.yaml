@@ -61,12 +61,13 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
+        # 2) Set AKS context (NO 'creds' HERE)
       - name: Set AKS context
         uses: azure/aks-set-context@v3
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
-          resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
+          resource-group: rg-tomerdashboard # <-- your RG
+          cluster-name: aks-tomerdashboard # <-- your AKS name
+          use-kubelogin: true
 
       - name: Ensure namespace
         run: |
