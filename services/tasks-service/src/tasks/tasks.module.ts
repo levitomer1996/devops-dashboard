@@ -10,7 +10,7 @@ import { Task, TaskSchema } from './schema/task.schema';
       { name: Task.name, schema: TaskSchema }, // <-- registers token getModelToken('User')
     ]),
   ],
-  controllers: [TasksController],
+  controllers: [TasksController], //
   providers: [TasksService],
 })
 export class TasksModule {}
