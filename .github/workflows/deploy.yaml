@@ -1,51 +1,87 @@
 name: CI-CD
 on:
+  workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+env:
+  NAMESPACE: devops-dashboard
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         service: [users-service, tasks-service]
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
+
       - name: Install & build
         working-directory: services/${{ matrix.service }}
         run: |
           npm ci
           npm run build
-      - name: Login to ACR
-        uses: azure/docker-login@v1
+
+      # ✅ Login to Azure using Service Principal (AZURE_CREDENTIALS)
+      - name: Azure login
+        uses: azure/login@v2
         with:
-          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
-          username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # ✅ Login to ACR (use the ACR *name*, not the full FQDN)
+      - name: ACR login
+        shell: bash
+        run: |
+          ACR_LOGIN_SERVER="${{ secrets.ACR_LOGIN_SERVER }}"           # e.g. tomerdashboardacr12345.azurecr.io
+          ACR_NAME="${ACR_LOGIN_SERVER%%.*}"                           # -> tomerdashboardacr12345
+          az acr login --name "$ACR_NAME"
+
       - name: Build & push image
         run: |
           docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.service }}:${{ github.sha }} services/${{ matrix.service }}
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.service }}:${{ github.sha }}
+
   deploy:
     needs: [build-and-push]
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-      - name: Set up kubectl
+
+      - name: Install kubectl
         uses: azure/setup-kubectl@v4
-      - name: AKS Login
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Set AKS context
         uses: azure/aks-set-context@v3
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
           resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
-      - name: Helm install/upgrade users
+
+      - name: Ensure namespace
         run: |
-          helm upgrade --install users-service charts/users-service                 --set image.repository=${{ secrets.ACR_LOGIN_SERVER }}/users-service                 --set image.tag=${{ github.sha }}
-      - name: Helm install/upgrade tasks
+          kubectl get ns ${{ env.NAMESPACE }} || kubectl create ns ${{ env.NAMESPACE }}
+
+      - name: Helm upgrade/install users-service
         run: |
-          helm upgrade --install tasks-service charts/tasks-service                 --set image.repository=${{ secrets.ACR_LOGIN_SERVER }}/tasks-service                 --set image.tag=${{ github.sha }}
+          helm upgrade --install users-service charts/users-service \
+            --namespace ${{ env.NAMESPACE }} --create-namespace \
+            --set image.repository=${{ secrets.ACR_LOGIN_SERVER }}/users-service \
+            --set image.tag=${{ github.sha }}
+
+      - name: Helm upgrade/install tasks-service
+        run: |
+          helm upgrade --install tasks-service charts/tasks-service \
+            --namespace ${{ env.NAMESPACE }} \
+            --set image.repository=${{ secrets.ACR_LOGIN_SERVER }}/tasks-service \
+            --set image.tag=${{ github.sha }}
