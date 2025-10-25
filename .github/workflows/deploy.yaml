@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main]
 
-# minimal permission so actions can read releases, etc.
+# allow actions to read GitHub releases (for kubelogin action)
 permissions:
   contents: read
 
@@ -71,11 +71,11 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
-      # Needed because use-kubelogin: true
+      # Install kubelogin (pin to a real release and pass token)
       - name: Install kubelogin
         uses: azure/use-kubelogin@v1
         with:
-          kubelogin-version: v0.0.36 # pin a version to avoid 'latest' lookup
+          kubelogin-version: v0.2.12
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
