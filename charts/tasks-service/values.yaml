@@ -14,7 +14,7 @@ env:
     value: "mongodb://admin:adminpass@tasks-service-tasks-service-mongo:27017/tasksdb?authSource=admin"
 
 service:
-  type: ClusterIP
+  type: LoadBalancer
   port: 3002
 
 resources: {}

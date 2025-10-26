@@ -15,7 +15,7 @@ env:
     value: "mongodb://admin:adminpass@users-service-users-service-mongo:27017/usersdb?authSource=admin"
 
 service:
-  type: ClusterIP
+  type: LoadBalancer
   port: 3001 # ✅ matches NestJS listen port
 
 resources: {} # set requests/limits later
