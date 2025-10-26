@@ -3,13 +3,13 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
-replicaCount: 1
+replicaCount: 2
 
 containerPort: 3002
 
 env:
   - name: PORT
-    value: "3000"
+    value: "3002"
   - name: MONGO_URI
     value: "mongodb://admin:adminpass@tasks-service-tasks-service-mongo:27017/tasksdb?authSource=admin"
 
