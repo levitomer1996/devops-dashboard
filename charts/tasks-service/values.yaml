@@ -11,13 +11,13 @@ env:
   - name: PORT
     value: "3000"
   - name: MONGO_URI
-    value: "mongodb://admin:adminpass@tasks-mongo:27017/tasksdb?authSource=admin"
+    value: "mongodb://admin:adminpass@tasks-service-tasks-service-mongo:27017/tasksdb?authSource=admin"
 
 service:
   type: ClusterIP
   port: 3002
 
-resources: {} # set requests/limits later
+resources: {}
 
 # --- MongoDB configuration ---
 mongo:

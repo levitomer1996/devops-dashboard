@@ -10,7 +10,7 @@ env:
   - name: PORT
     value: "3000"
   - name: MONGO_URI
-    value: "mongodb://admin:adminpass@users-mongo:27017/usersdb?authSource=admin"
+    value: "mongodb://admin:adminpass@users-service-users-service-mongo:27017/usersdb?authSource=admin"
 
 service:
   type: ClusterIP
