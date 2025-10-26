@@ -3,8 +3,9 @@ image:
   tag: "latest"
   pullPolicy: IfNotPresent
 
-replicaCount: 2
+replicaCount: 1
 containerPort: 3000
+
 env:
   - name: PORT
     value: "3000"
@@ -15,4 +16,24 @@ service:
   type: ClusterIP
   port: 3000
 
-resources: {}
+resources: {} # set requests/limits later
+
+# --- MongoDB configuration ---
+mongo:
+  enabled: true
+  image: "mongo:7"
+  servicePort: 27017
+
+  auth:
+    rootUser: admin
+    rootPassword: adminpass
+    database: usersdb
+    authSource: admin
+
+  persistence:
+    enabled: false # enable true in production
+    size: 5Gi
+    accessModes: ["ReadWriteOnce"]
+    storageClassName: "" # specify if you have a storage class
+
+  resources: {} # add CPU/memory limits here if needed

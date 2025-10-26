@@ -3,8 +3,38 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+replicaCount: 1
+
+containerPort: 3000
+
+env:
+  - name: PORT
+    value: "3000"
+  - name: MONGO_URI
+    value: "mongodb://admin:adminpass@tasks-mongo:27017/tasksdb?authSource=admin"
+
 service:
   type: ClusterIP
   port: 3002
 
-resources: {}  # set requests/limits later
+resources: {} # set requests/limits later
+
+# --- MongoDB configuration ---
+mongo:
+  enabled: true
+  image: "mongo:7"
+  servicePort: 27017
+
+  auth:
+    rootUser: admin
+    rootPassword: adminpass
+    database: tasksdb
+    authSource: admin
+
+  persistence:
+    enabled: false # enable true in production
+    size: 5Gi
+    accessModes: ["ReadWriteOnce"]
+    storageClassName: "" # specify if you have a storage class
+
+  resources: {} # add CPU/memory limits here if needed

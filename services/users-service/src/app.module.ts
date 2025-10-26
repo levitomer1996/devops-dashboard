@@ -13,7 +13,7 @@ import { ConfigModule } from '@nestjs/config';
       isGlobal: true,
     }),
     MongooseModule.forRoot(
-      'mongodb://admin:adminpass@localhost:27017/tasksdb?authSource=admin',
+      process.env.MONGODB_URI || 'mongodb://localhost:27017/users-service',
     ),
   ],
   controllers: [AppController, HealthController],
