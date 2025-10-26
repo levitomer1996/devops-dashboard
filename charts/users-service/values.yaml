@@ -1,20 +1,22 @@
 image:
-  repository: <override via CI>
+  repository: tomerdashboardacr12345.azurecr.io/users-service
   tag: "latest"
   pullPolicy: IfNotPresent
 
 replicaCount: 1
-containerPort: 3000
+
+# Must match NestJS port (from main.ts)
+containerPort: 3001
 
 env:
   - name: PORT
-    value: "3000"
+    value: "3001"
   - name: MONGO_URI
     value: "mongodb://admin:adminpass@users-service-users-service-mongo:27017/usersdb?authSource=admin"
 
 service:
   type: ClusterIP
-  port: 3000
+  port: 3001 # ✅ matches NestJS listen port
 
 resources: {} # set requests/limits later
 

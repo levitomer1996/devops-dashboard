@@ -1,5 +1,5 @@
 image:
-  repository: YOUR_ACR_NAME.azurecr.io/tasks-service
+  repository: tomerdashboardacr12345.azurecr.io/tasks-service
   tag: latest
   pullPolicy: IfNotPresent
 

@@ -5,6 +5,7 @@ import { UsersModule } from './users/users.module';
 import { HealthController } from './health/health.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -12,9 +13,14 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot(
-      process.env.MONGODB_URI || 'mongodb://localhost:27017/users-service',
-    ),
+    MongooseModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        uri:
+          config.get<string>('MONGO_URI') ||
+          'mongodb://admin:adminpass@users-service-users-service-mongo:27017/usersdb?authSource=admin',
+      }),
+    }),
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

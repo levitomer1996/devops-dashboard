@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: tasks-service
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount | default 1 }}
   selector:
     matchLabels:
       app: tasks-service
@@ -14,13 +14,30 @@ spec:
     spec:
       containers:
         - name: tasks-service
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: 3002
+            - containerPort: {{ .Values.containerPort }}
+          env:
+{{- range .Values.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+{{- end }}
           readinessProbe:
-            httpGet: { path: /ready, port: 3002 }
+            httpGet:
+              path: /ready
+              port: {{ .Values.containerPort }}
             initialDelaySeconds: 5
+            periodSeconds: 10
           livenessProbe:
-            httpGet: { path: /health, port: 3002 }
+            httpGet:
+              path: /health
+              port: {{ .Values.containerPort }}
             initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+{{- if .Values.resources }}
+{{ toYaml .Values.resources | indent 12 }}
+{{- else }}
+            {}
+{{- end }}
