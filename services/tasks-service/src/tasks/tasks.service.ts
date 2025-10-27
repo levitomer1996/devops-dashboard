@@ -42,7 +42,23 @@ export class TasksService {
     return `This action returns a #${id} task`;
   }
 
-  update(id: number, updateTaskDto: UpdateTaskDto) {
+  async update(
+    id: Types.ObjectId,
+    updateType: { is_done?: boolean; title?: string },
+  ) {
+    if (updateType.is_done !== undefined) {
+      return await this.taskModel.findByIdAndUpdate(
+        id,
+        { is_done: updateType.is_done },
+        { new: true },
+      );
+    } else if (updateType.title !== undefined) {
+      return await this.taskModel.findByIdAndUpdate(
+        id,
+        { title: updateType.title },
+        { new: true },
+      );
+    }
     return `This action updates a #${id} task`;
   }
 

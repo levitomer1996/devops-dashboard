@@ -43,8 +43,8 @@ jobs:
       - name: ACR login
         shell: bash
         run: |
-          ACR_LOGIN_SERVER="${{ secrets.ACR_LOGIN_SERVER }}"   # e.g. tomerdashboardacr12345.azurecr.io
-          ACR_NAME="${ACR_LOGIN_SERVER%%.*}"                   # -> tomerdashboardacr12345
+          ACR_LOGIN_SERVER="${{ secrets.ACR_LOGIN_SERVER }}"   
+          ACR_NAME="${ACR_LOGIN_SERVER%%.*}"                   
           az acr login --name "$ACR_NAME"
 
       - name: Build & push image
