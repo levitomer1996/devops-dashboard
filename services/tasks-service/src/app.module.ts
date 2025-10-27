@@ -11,7 +11,7 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot(process.env.MONGO_URI as string),
+    MongooseModule.forRoot(process.env.MONGO_URI as string), /// Changing
     TasksModule,
   ],
   controllers: [AppController, HealthController],
