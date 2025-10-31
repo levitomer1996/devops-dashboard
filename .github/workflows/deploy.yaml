@@ -105,22 +105,22 @@ jobs:
             --namespace ${{ env.NAMESPACE }} \
             --set image.repository=${{ secrets.ACR_LOGIN_SERVER }}/tasks-service \
             --set image.tag=${{ github.sha }}
-      # Run your PowerShell health script
+
+        # Run your PowerShell health script – Run monitoring for both services
       - name: Health check ${{ matrix.target.name }}
         shell: pwsh
-        run: >
-          ./scripts/Monitoring/Check-UsersHealth.ps1
-          -Url "${{ matrix.target.url }}"
-          -Namespace "${{ env.NAMESPACE }}"
-          -Deployment "${{ matrix.target.deploy }}"
-          -LogTail 300
-          -LogSinceSeconds 900
-          -SaveLogsDir "./${{ matrix.target.logsDir }}"
-
-      # Upload logs even if failing
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/Monitoring/Check-Service-Health.ps1 `
+            -Url "${{ matrix.target.url }}" `
+            -Namespace "${{ env.NAMESPACE }}" `
+            -Deployment "${{ matrix.target.deploy }}" `
+            -LogTail 300 `
+            -LogSinceSeconds 900 `
+            -SaveLogsDir "./${{ matrix.target.logsDir }}"
       - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target.name }}-logs
-          path: ${{ matrix.target.logsDir }}/
+          path: artifacts/${{ matrix.target.name }}/
+          if-no-files-found: warn # do not fail if folder empty
