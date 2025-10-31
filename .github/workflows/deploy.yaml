@@ -1,4 +1,5 @@
 name: CI-CD
+
 on:
   workflow_dispatch:
   push:
@@ -6,9 +7,12 @@ on:
   pull_request:
     branches: [main]
 
-# allow actions to read GitHub releases (for kubelogin action)
 permissions:
   contents: read
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   NAMESPACE: devops-dashboard
@@ -22,6 +26,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-npm-${{ hashFiles('services/**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
 
       - uses: actions/setup-node@v4
         with:
@@ -43,8 +55,8 @@ jobs:
       - name: ACR login
         shell: bash
         run: |
-          ACR_LOGIN_SERVER="${{ secrets.ACR_LOGIN_SERVER }}"   
-          ACR_NAME="${ACR_LOGIN_SERVER%%.*}"                   
+          ACR_LOGIN_SERVER="${{ secrets.ACR_LOGIN_SERVER }}"
+          ACR_NAME="${ACR_LOGIN_SERVER%%.*}"
           az acr login --name "$ACR_NAME"
 
       - name: Build & push image
@@ -59,7 +71,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 🔑 Login again in this job
       - name: Azure login
         uses: azure/login@v2
         with:
@@ -71,7 +82,6 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
-      # Install kubelogin (pin to a real release and pass token)
       - name: Install kubelogin
         uses: azure/use-kubelogin@v1
         with:
@@ -79,48 +89,109 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      # Set AKS context (no 'creds' here)
       - name: Set AKS context
         uses: azure/aks-set-context@v3
         with:
           resource-group: rg-tomerdashboard
           cluster-name: aks-tomerdashboard
           use-kubelogin: true
-          # subscription: ${{ secrets.AZURE_SUBSCRIPTION_ID }} # uncomment if needed
 
       - name: Ensure namespace
         run: |
           kubectl get ns ${{ env.NAMESPACE }} || kubectl create ns ${{ env.NAMESPACE }}
 
+      # ---- USERS-SERVICE DEPLOY + ROLLOUT WAIT ----
       - name: Helm upgrade/install users-service
         run: |
           helm upgrade --install users-service charts/users-service \
             --namespace ${{ env.NAMESPACE }} --create-namespace \
             --set image.repository=${{ secrets.ACR_LOGIN_SERVER }}/users-service \
-            --set image.tag=${{ github.sha }}
+            --set image.tag=${{ github.sha }} \
+            --wait --atomic --timeout 5m
+          kubectl rollout status deploy/users-service -n ${{ env.NAMESPACE }} --timeout=5m
+          kubectl -n ${{ env.NAMESPACE }} get pods -l app=users-service -o wide
 
+      # ---- TASKS-SERVICE DEPLOY + ROLLOUT WAIT ----
       - name: Helm upgrade/install tasks-service
         run: |
           helm upgrade --install tasks-service charts/tasks-service \
             --namespace ${{ env.NAMESPACE }} \
             --set image.repository=${{ secrets.ACR_LOGIN_SERVER }}/tasks-service \
-            --set image.tag=${{ github.sha }}
+            --set image.tag=${{ github.sha }} \
+            --wait --atomic --timeout 5m
+          kubectl rollout status deploy/tasks-service -n ${{ env.NAMESPACE }} --timeout=5m
+          kubectl -n ${{ env.NAMESPACE }} get pods -l app=tasks-service -o wide
 
-        # Run your PowerShell health script – Run monitoring for both services
+  health-check:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    env:
+      RG: rg-tomerdashboard
+      AKS: aks-tomerdashboard
+      NAMESPACE: devops-dashboard
+    strategy:
+      matrix:
+        target:
+          - name: users-service
+            url: "http://4.209.26.155:3001/health"
+            deploy: "users-service"
+          - name: tasks-service
+            url: "http://4.208.195.210:3002/health"
+            deploy: "tasks-service"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Install kubelogin
+        uses: azure/use-kubelogin@v1
+        with:
+          kubelogin-version: v0.2.12
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ env.RG }}
+          cluster-name: ${{ env.AKS }}
+          use-kubelogin: true
+
+      - name: Debug inputs
+        shell: pwsh
+        run: |
+          'URL=      ${{ matrix.target.url }}'
+          'DEPLOY=   ${{ matrix.target.deploy }}'
+          'NAMESPACE=${{ env.NAMESPACE }}'
+          ls -la ./scripts/Monitoring
+
       - name: Health check ${{ matrix.target.name }}
         shell: pwsh
         run: |
-          pwsh -NoLogo -NoProfile -File ./scripts/Monitoring/Check-Service-Health.ps1 `
+          $out = "artifacts/${{ matrix.target.name }}"
+          New-Item -ItemType Directory -Path $out -Force | Out-Null
+          ./scripts/Monitoring/Check-Service-Health.ps1 `
             -Url "${{ matrix.target.url }}" `
             -Namespace "${{ env.NAMESPACE }}" `
             -Deployment "${{ matrix.target.deploy }}" `
             -LogTail 300 `
             -LogSinceSeconds 900 `
-            -SaveLogsDir "./${{ matrix.target.logsDir }}"
+            -SaveLogsDir $out
+
       - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target.name }}-logs
           path: artifacts/${{ matrix.target.name }}/
-          if-no-files-found: warn # do not fail if folder empty
+          if-no-files-found: warn
