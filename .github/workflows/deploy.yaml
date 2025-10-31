@@ -105,3 +105,22 @@ jobs:
             --namespace ${{ env.NAMESPACE }} \
             --set image.repository=${{ secrets.ACR_LOGIN_SERVER }}/tasks-service \
             --set image.tag=${{ github.sha }}
+      # Run your PowerShell health script
+      - name: Health check ${{ matrix.target.name }}
+        shell: pwsh
+        run: >
+          ./scripts/Monitoring/Check-UsersHealth.ps1
+          -Url "${{ matrix.target.url }}"
+          -Namespace "${{ env.NAMESPACE }}"
+          -Deployment "${{ matrix.target.deploy }}"
+          -LogTail 300
+          -LogSinceSeconds 900
+          -SaveLogsDir "./${{ matrix.target.logsDir }}"
+
+      # Upload logs even if failing
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target.name }}-logs
+          path: ${{ matrix.target.logsDir }}/
