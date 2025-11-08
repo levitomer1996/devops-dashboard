@@ -2,197 +2,429 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Auth Page</title>
-
-    <!-- ✅ Materialize CSS -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Google Icons -->
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      rel="stylesheet"
-    />
-
+    <title>DevOps Dashboard – Simple Client</title>
     <style>
       body {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        background: #f5f5f5;
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        margin: 0;
+        padding: 20px;
       }
-      .auth-container {
-        max-width: 480px;
-        width: 100%;
-        padding: 0;
-        border-radius: 12px;
+
+      h1 {
+        text-align: center;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+      }
+
+      .card {
         background: #fff;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       }
-      .auth-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 1.25rem 1.5rem 0.75rem;
+
+      .card h2 {
+        margin-top: 0;
       }
-      .tabs {
-        padding: 0 1rem;
+
+      label {
+        display: block;
+        margin-top: 8px;
+        font-size: 0.9rem;
       }
-      .tabs .tab a {
-        color: #1976d2;
-      }
-      .tabs .tab a.active {
-        color: #0d47a1;
-      }
-      .tabs .indicator {
-        background-color: #1976d2;
-      }
-      .auth-content {
-        padding: 1.5rem;
-      }
-      .btn {
+
+      input {
         width: 100%;
+        padding: 8px;
+        margin-top: 4px;
+        box-sizing: border-box;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        font-size: 0.9rem;
       }
-      .helper-text.right {
-        float: right;
+
+      button {
+        margin-top: 12px;
+        padding: 8px 14px;
+        border: none;
+        border-radius: 4px;
+        background: #1976d2;
+        color: white;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+
+      button:hover {
+        background: #125aa0;
+      }
+
+      .status {
+        margin-top: 10px;
+        font-size: 0.85rem;
+        white-space: pre-wrap;
+      }
+
+      .status.success {
+        color: #2e7d32;
+      }
+
+      .status.error {
+        color: #c62828;
+      }
+
+      .user-info {
+        margin-top: 10px;
+        font-size: 0.85rem;
+        padding: 8px;
+        background: #e3f2fd;
+        border-radius: 4px;
+      }
+
+      code {
+        background: #eee;
+        padding: 2px 4px;
+        border-radius: 4px;
+        font-size: 0.8rem;
       }
     </style>
   </head>
-
   <body>
-    <div class="auth-container z-depth-2">
-      <div class="auth-header">
-        <i class="material-icons">lock</i>
-        <h5 style="margin: 0">Welcome</h5>
+    <h1>DevOps Dashboard – Simple Frontend</h1>
+
+    <div class="container">
+      <!-- REGISTER (CreateUserDto) -->
+      <div class="card">
+        <h2>Register</h2>
+        <form id="register-form">
+          <!-- CreateUserDto: { name, username, password } -->
+          <label>
+            Name
+            <input
+              type="text"
+              id="register-name"
+              required
+              minlength="2"
+              maxlength="50"
+            />
+          </label>
+
+          <label>
+            Username
+            <input
+              type="text"
+              id="register-username"
+              required
+              minlength="3"
+              maxlength="30"
+            />
+          </label>
+
+          <label>
+            Password
+            <input
+              type="password"
+              id="register-password"
+              required
+              minlength="8"
+              maxlength="128"
+            />
+          </label>
+
+          <button type="submit">Register</button>
+        </form>
+        <div id="register-status" class="status"></div>
       </div>
 
-      <!-- Tabs -->
-      <ul class="tabs">
-        <li class="tab col s6"><a class="active" href="#login">Login</a></li>
-        <li class="tab col s6"><a href="#register">Register</a></li>
-      </ul>
+      <!-- LOGIN (LoginUserDto) -->
+      <div class="card">
+        <h2>Login</h2>
+        <form id="login-form">
+          <!-- LoginUserDto: { username, password } -->
+          <label>
+            Username
+            <input type="text" id="login-username" required />
+          </label>
 
-      <!-- Login -->
-      <div id="login" class="auth-content">
-        <form action="/login" method="POST" novalidate>
-          <div class="input-field">
-            <input id="login-username" name="username" type="text" required />
-            <label for="login-username">Username</label>
-          </div>
-          <div class="input-field">
-            <input
-              id="login-password"
-              name="password"
-              type="password"
-              required
-            />
-            <label for="login-password">Password</label>
-            <span class="helper-text right"
-              ><a href="#">Forgot password?</a></span
-            >
-          </div>
-          <button type="submit" class="btn waves-effect waves-light blue">
-            <i class="material-icons left">login</i>Login
-          </button>
+          <label>
+            Password
+            <input type="password" id="login-password" required minlength="6" />
+          </label>
+
+          <button type="submit">Login</button>
         </form>
+
+        <div id="login-status" class="status"></div>
+
+        <div class="user-info" id="current-user-info">Not logged in.</div>
       </div>
 
-      <!-- Register -->
-      <div id="register" class="auth-content">
-        <form action="/register" method="POST" novalidate>
-          <div class="input-field">
-            <input id="reg-username" name="username" type="text" required />
-            <label for="reg-username">Username</label>
-          </div>
-          <div class="input-field">
-            <input
-              id="reg-email"
-              name="email"
-              type="email"
-              class="validate"
-              required
-            />
-            <label for="reg-email">Email</label>
-            <span class="helper-text" data-error="Enter a valid email"></span>
-          </div>
-          <div class="input-field">
-            <input
-              id="reg-password"
-              name="password"
-              type="password"
-              minlength="6"
-              required
-            />
-            <label for="reg-password">Password (min 6 chars)</label>
-          </div>
-          <div class="input-field">
-            <input
-              id="reg-confirm"
-              name="confirmPassword"
-              type="password"
-              minlength="6"
-              required
-            />
-            <label for="reg-confirm">Confirm Password</label>
-            <span id="pwd-match" class="helper-text"></span>
-          </div>
-          <p>
-            <label>
-              <input type="checkbox" name="terms" required />
-              <span>I agree to the Terms & Privacy</span>
-            </label>
-          </p>
-          <br />
-          <button type="submit" class="btn waves-effect waves-light green">
-            <i class="material-icons left">person_add</i>Create Account
-          </button>
+      <!-- CREATE TASK (CreateTaskDto) -->
+      <div class="card">
+        <h2>Create Task</h2>
+        <p style="font-size: 0.85rem">
+          Sends <code>{ title, user_id }</code> to<br />
+          <code>POST http://4.208.195.210:3002/tasks</code>.<br />
+          <code>user_id</code> is taken from the logged-in user.
+        </p>
+        <form id="task-form">
+          <!-- CreateTaskDto: { title, user_id } -->
+          <label>
+            Title
+            <input type="text" id="task-title" required />
+          </label>
+
+          <button type="submit">Create Task</button>
         </form>
+        <div id="task-status" class="status"></div>
       </div>
     </div>
 
-    <!-- ✅ Materialize JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-
     <script>
-      // Init tabs
-      document.addEventListener("DOMContentLoaded", function () {
-        const elems = document.querySelectorAll(".tabs");
-        M.Tabs.init(elems);
-      });
+      // === CONFIG – base URLs ===
+      const USERS_BASE_URL = "http://4.209.26.155:3001";
+      const TASKS_BASE_URL = "http://4.208.195.210:3002";
 
-      // Simple password match helper (client-side UX only)
-      const pwd = document.getElementById("reg-password");
-      const confirm = document.getElementById("reg-confirm");
-      const helper = document.getElementById("pwd-match");
+      // Where we keep the current userId and (optionally) token
+      let currentUserId = null;
+      let currentToken = null;
 
-      function checkPwdMatch() {
-        if (!pwd.value || !confirm.value) {
-          helper.textContent = "";
-          return;
+      // Try to restore from localStorage
+      (function restoreUser() {
+        try {
+          const storedUserId = localStorage.getItem("userId");
+          const storedToken = localStorage.getItem("token");
+          if (storedUserId) {
+            currentUserId = storedUserId;
+          }
+          if (storedToken) {
+            currentToken = storedToken;
+          }
+        } catch (e) {
+          console.warn("Cannot read localStorage:", e);
         }
-        if (pwd.value === confirm.value) {
-          helper.textContent = "Passwords match ✅";
-          helper.style.color = "green";
+        updateCurrentUserInfo();
+      })();
+
+      function updateCurrentUserInfo() {
+        const el = document.getElementById("current-user-info");
+        if (!currentUserId) {
+          el.textContent = "Not logged in.";
         } else {
-          helper.textContent = "Passwords do not match";
-          helper.style.color = "red";
+          el.textContent = `Logged in as userId: ${currentUserId}`;
         }
       }
-      if (pwd && confirm) {
-        pwd.addEventListener("input", checkPwdMatch);
-        confirm.addEventListener("input", checkPwdMatch);
-      }
-    </script>
-    <script type="module">
-      import { registerUser } from "./Register.js";
 
-      // You can optionally attach it to window to call it from HTML onclick
-      window.registerUser = registerUser;
+      function setStatus(id, message, isError = false) {
+        const el = document.getElementById(id);
+        el.textContent = message;
+        el.className = "status " + (isError ? "error" : "success");
+      }
+
+      // ==================
+      // REGISTER  (CreateUserDto)
+      // ==================
+      document
+        .getElementById("register-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const name = document.getElementById("register-name").value;
+          const username = document.getElementById("register-username").value;
+          const password = document.getElementById("register-password").value;
+
+          // CreateUserDto: { name, username, password }
+          const body = {
+            name,
+            username,
+            password,
+          };
+
+          try {
+            setStatus("register-status", "Registering...", false);
+
+            const res = await fetch(`${USERS_BASE_URL}/users`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(body),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              throw new Error(JSON.stringify(data, null, 2));
+            }
+
+            const userId = data.id || data._id || data.userId;
+            const msg = userId
+              ? `User created successfully. userId = ${userId}`
+              : `User created successfully.\nResponse:\n${JSON.stringify(
+                  data,
+                  null,
+                  2
+                )}`;
+
+            setStatus("register-status", msg, false);
+          } catch (err) {
+            setStatus(
+              "register-status",
+              "Registration failed:\n" + err.message,
+              true
+            );
+          }
+        });
+
+      // ==================
+      // LOGIN (LoginUserDto)
+      // ==================
+      document
+        .getElementById("login-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const username = document.getElementById("login-username").value;
+          const password = document.getElementById("login-password").value;
+
+          // LoginUserDto: { username, password }
+          const body = {
+            username,
+            password,
+          };
+
+          try {
+            setStatus("login-status", "Logging in...", false);
+
+            const res = await fetch(`${USERS_BASE_URL}/users/login`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(body),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              throw new Error(JSON.stringify(data, null, 2));
+            }
+
+            // Try to guess where userId/token are:
+            // e.g. { user: { id: ... }, token: "..." } OR { id: ... } etc.
+            let userId =
+              data.id ||
+              data._id ||
+              data.userId ||
+              (data.user &&
+                (data.user.id || data.user._id || data.user.userId));
+
+            let token = data.token || data.accessToken || data.jwt || null;
+
+            if (!userId) {
+              // fallback – maybe the whole object IS the user
+              userId = data.id || data._id;
+            }
+
+            currentUserId = userId || null;
+            currentToken = token || null;
+
+            try {
+              if (currentUserId) {
+                localStorage.setItem("userId", currentUserId);
+              }
+              if (currentToken) {
+                localStorage.setItem("token", currentToken);
+              }
+            } catch (e) {
+              console.warn("Cannot write localStorage:", e);
+            }
+
+            updateCurrentUserInfo();
+
+            setStatus(
+              "login-status",
+              `Login successful.\nuserId = ${
+                currentUserId || "UNKNOWN (check backend response)"
+              }`,
+              false
+            );
+          } catch (err) {
+            setStatus("login-status", "Login failed:\n" + err.message, true);
+          }
+        });
+
+      // ==================
+      // CREATE TASK (CreateTaskDto)
+      // ==================
+      document
+        .getElementById("task-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          if (!currentUserId) {
+            setStatus(
+              "task-status",
+              "You must login first so we have a user_id.",
+              true
+            );
+            return;
+          }
+
+          const title = document.getElementById("task-title").value;
+
+          // CreateTaskDto: { title, user_id }
+          const body = {
+            title,
+            user_id: currentUserId, // Mongoose will cast string -> ObjectId
+          };
+
+          try {
+            setStatus("task-status", "Creating task...", false);
+
+            const headers = {
+              "Content-Type": "application/json",
+            };
+
+            // If your backend expects Bearer token
+            if (currentToken) {
+              headers["Authorization"] = `Bearer ${currentToken}`;
+            }
+
+            const res = await fetch(`${TASKS_BASE_URL}/tasks`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify(body),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              throw new Error(JSON.stringify(data, null, 2));
+            }
+
+            setStatus(
+              "task-status",
+              "Task created successfully:\n" + JSON.stringify(data, null, 2),
+              false
+            );
+
+            // Clear input
+            document.getElementById("task-title").value = "";
+          } catch (err) {
+            setStatus(
+              "task-status",
+              "Task creation failed:\n" + err.message,
+              true
+            );
+          }
+        });
     </script>
   </body>
 </html>
